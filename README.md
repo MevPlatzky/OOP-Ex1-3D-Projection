@@ -5,7 +5,7 @@ A high-performance Python engine for projecting arbitrary 2D planes (defined as 
 ## 1. Problem Definition
 Volumetric 3D data (such as medical MRI scans stored in `.nrrd` format) is traditionally viewed along standard orthogonal axes (X, Y, Z slices). However, analyzing structures at arbitrary angles requires slicing the 3D volume ($M$) along any given flat plane ($p$) in space. 
 
-The goal of this project is to design and implement a robust, efficient algorithm that takes a 3D matrix ($M$) and a geometric plane ($p$)—defined by either 3 points forming an isosceles triangle or 4 points forming an isosceles trapezoid—and projects the intersecting 3D voxels onto a 2D output image matrix ($E$) in real-time (expected >=100 FPS, and targeting 300+ FPS on a 500^3 volume).
+The goal of this project is to design and implement a robust, efficient algorithm that takes a 3D matrix ($M$) and a geometric plane ($p$)—defined by either 3 points forming an isosceles triangle or 4 points forming an isosceles trapezoid—and projects the intersecting 3D voxels (pixels with volume) onto a 2D output image matrix ($E$) in real-time (expected >=100 FPS, and targeting 300+ FPS on a 500^3 volume).
 
 ## 2. Project Scope
 
