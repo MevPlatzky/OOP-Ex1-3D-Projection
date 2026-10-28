@@ -22,6 +22,10 @@ The goal of this project is to design and implement a robust, efficient algorith
 * **Medical Diagnosis / Image Processing:** No post-processing, segmentation, or clinical analysis is performed on the projected images.
 
 ## 3. Documentation & Structure
-* **SRS (Software Requirements Specification):** *(To be added)*
-* **Algorithm & Design (SDD/EDD):** *(To be added)*
-* **Testing Strategy:** *(To be added)*
+The engineering planning for this project is divided into the following documents:
+* [Software Requirements Specification (SRS)](docs/SRS.md)
+* [System & Engineering Design (SDD/EDD)](docs/SDD_EDD.md)
+* [Testing Strategy & Cases (STP/STD)](docs/Testing.md)
+
+## 4. Data Set
+*[Our class sheared data set for the assignment](https://drive.google.com/drive/folders/1koJ83uaeMYdJt6AwvVlmMJk_wzczvmmG?usp=sharing)*
