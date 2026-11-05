@@ -9,7 +9,8 @@ current source files in `SRC/`.
 
 1. `SRC/Ex0.py` starts the command-line application.
 2. `SRC/cli.py` checks the three positional arguments and coordinates the run.
-3. `SRC/data_loader.py` reads the NRRD array and parses usable CSV plane rows.
+3. `SRC/data_loader.py` reads and validates the NRRD array and parses usable
+   CSV plane rows.
 4. `SRC/plane.py` converts coordinate rows and calculates each plane's raster
    dimensions.
 5. `SRC/video_renderer.py` determines the common canvas, warms up the
@@ -22,6 +23,7 @@ current source files in `SRC/`.
 
 | Module | Responsibility |
 |---|---|
+| `__init__.py` | Makes `SRC` importable as a package while retaining direct-script execution. |
 | `Ex0.py` | Small executable entry point; converts `cli.main()`'s return value into the process exit code. |
 | `cli.py` | Argument count, status messages, NRRD-load handling, canvas setup, and orchestration. |
 | `data_loader.py` | NRRD reading and CSV row iteration; skips rows that cannot be parsed or prepared. |
@@ -29,8 +31,9 @@ current source files in `SRC/`.
 | `projector.py` | Numba-compiled plane-to-volume sampling kernel. |
 | `video_renderer.py` | Even-sized canvas, codec selection, normalization, frame placement, video writing, and FPS measurement. |
 
-The modules import one another as sibling files. The supported invocation from
-the repository root is:
+The modules support both package imports for tests and sibling-file imports
+when the entry point is run directly. The supported invocation from the
+repository root is:
 
 ```text
 python SRC/Ex0.py <file.nrrd> <file.csv> <file.mp4>
@@ -38,8 +41,8 @@ python SRC/Ex0.py <file.nrrd> <file.csv> <file.mp4>
 
 ### 1.3 Data contracts
 
-* The volume is the NumPy array returned by `nrrd.read`; indexing is
-  `volume[x, y, z]`. The header is discarded.
+* The volume is a non-empty, finite, real numeric NumPy array returned by
+  `nrrd.read`; indexing is `volume[x, y, z]`. The header is discarded.
 * `plane.parse_csv_row` returns four `float32` points `(a1, a2, b, c)`.
   Triangle input is represented by setting `a1` and `a2` to the same point.
 * `Plane` adds `n_x`, `n_y`, `d_top`, and `d_bot` to those four points.
@@ -55,12 +58,14 @@ python SRC/Ex0.py <file.nrrd> <file.csv> <file.mp4>
 The parser strips whitespace and ignores empty cells. It converts remaining
 cells to floating-point values, discards the first value when there are exactly
 10 or 13 values, and accepts only 9-value triangle or 12-value trapezoid
-coordinate rows. Parsed coordinates are stored as `float32`.
+coordinate rows. Coordinates must be finite and fit the `float32` range before
+being stored as `float32`.
 
-The input loader skips rows that raise `ValueError` during parsing. It also
-skips rows if dimension calculation raises an exception. It does not check
-finiteness, coplanarity, equal leg lengths, base parallelism, or polygon
-self-intersection.
+The volume loader rejects non-3D or empty arrays, non-real/non-numeric dtypes,
+and non-finite voxel values. The input loader skips rows that raise `ValueError`
+during parsing and rows with known numeric or value errors during dimension
+calculation. It does not check coplanarity, equal leg lengths, base parallelism,
+or polygon self-intersection.
 
 For points `(a1, a2, b, c)`, `plane.get_plane_dimensions` computes:
 
@@ -126,9 +131,10 @@ startup measurement and is not checked against a performance threshold.
 * NRRD read failure: an error is printed and exit code `1` is returned.
 * No usable plane rows: an error is printed and exit code `2` is returned.
 * No supported writer opens: an error is printed and exit code `3` is returned.
-* CSV open errors and unexpected projection/encoding exceptions are not
-  normalized by the CLI and may propagate.
+* CSV open/decoding errors return code `1`. Unexpected projection/encoding
+  exceptions are not normalized by the CLI and may propagate.
 * CSV rows rejected by parsing or dimension calculation are silently skipped.
-* The code assumes a usable 3D volume, imposes no supported dtype/shape limits,
-  and does not validate geometric properties of planes.
-* The repository has no automated test suite or declared package manifest.
+* The code does not validate geometric properties of planes.
+* `TEST/` contains the standard-library regression suite and sample data. Run
+  it with `python -m unittest discover -s TEST -t . -v` from the
+  repository root. No dependency manifest is provided.

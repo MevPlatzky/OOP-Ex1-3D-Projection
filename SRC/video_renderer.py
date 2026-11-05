@@ -6,8 +6,12 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
-from plane import Plane
-from projector import project_plane_numba
+if __package__:
+    from .plane import Plane
+    from .projector import project_plane_numba
+else:
+    from plane import Plane
+    from projector import project_plane_numba
 
 
 class VideoWriterError(RuntimeError):
@@ -16,6 +20,8 @@ class VideoWriterError(RuntimeError):
 
 def get_global_canvas_size(planes: List[Plane]) -> Tuple[int, int]:
     """Return the largest plane dimensions, rounded up to even values."""
+    if not planes:
+        raise ValueError("At least one plane is required to size the video canvas")
     max_width = max(plane.n_x for plane in planes)
     max_height = max(plane.n_y for plane in planes)
     max_height = max_height if max_height % 2 == 0 else max_height + 1
@@ -50,6 +56,8 @@ def render_video(
     canvas_size: Tuple[int, int],
 ) -> Tuple[str, float, int]:
     """Project, normalize, center, and stream all planes to a video file."""
+    if not planes:
+        raise ValueError("At least one plane is required to render a video")
     max_width, max_height = canvas_size
     first_plane = planes[0]
     project_plane_numba(

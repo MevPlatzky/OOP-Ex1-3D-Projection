@@ -1,14 +1,23 @@
 """Command-line orchestration for volume projection and video export."""
 
+import csv
 import sys
 from typing import Optional, Sequence
 
-from data_loader import load_planes, load_volume
-from video_renderer import (
-    VideoWriterError,
-    get_global_canvas_size,
-    render_video,
-)
+if __package__:
+    from .data_loader import load_planes, load_volume
+    from .video_renderer import (
+        VideoWriterError,
+        get_global_canvas_size,
+        render_video,
+    )
+else:
+    from data_loader import load_planes, load_volume
+    from video_renderer import (
+        VideoWriterError,
+        get_global_canvas_size,
+        render_video,
+    )
 
 
 def _configure_console_output() -> None:
@@ -42,7 +51,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     )
 
     print("[INFO] Parsing CSV planes and Planning Global Canvas...")
-    planes = load_planes(csv_path)
+    try:
+        planes = load_planes(csv_path)
+    except (OSError, UnicodeError, csv.Error) as error:
+        print(f"[ERROR] Failed to load CSV: {error}")
+        return 1
     if not planes:
         print("[ERROR] No valid planes found.")
         return 2

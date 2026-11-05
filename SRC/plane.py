@@ -35,21 +35,26 @@ def parse_csv_row(row: Sequence[str]) -> PlanePoints:
     if len(values) in (10, 13):
         values = values[1:]
 
+    if len(values) not in (9, 12):
+        raise ValueError(
+            f"Invalid row format: expected 9 or 12 coordinates, got {len(values)}"
+        )
+    if not np.isfinite(values).all():
+        raise ValueError("Plane coordinates must be finite numbers")
+    float32_max = float(np.finfo(np.float32).max)
+    if any(abs(value) > float32_max for value in values):
+        raise ValueError("Plane coordinates exceed the supported float32 range")
+
     if len(values) == 9:
         a = np.array(values[0:3], dtype=np.float32)
         b = np.array(values[3:6], dtype=np.float32)
         c = np.array(values[6:9], dtype=np.float32)
         return a, a, b, c
-    if len(values) == 12:
-        a1 = np.array(values[0:3], dtype=np.float32)
-        a2 = np.array(values[3:6], dtype=np.float32)
-        b = np.array(values[6:9], dtype=np.float32)
-        c = np.array(values[9:12], dtype=np.float32)
-        return a1, a2, b, c
-
-    raise ValueError(
-        f"Invalid row format: expected 9 or 12 coordinates, got {len(values)}"
-    )
+    a1 = np.array(values[0:3], dtype=np.float32)
+    a2 = np.array(values[3:6], dtype=np.float32)
+    b = np.array(values[6:9], dtype=np.float32)
+    c = np.array(values[9:12], dtype=np.float32)
+    return a1, a2, b, c
 
 
 def is_numeric_csv_row(row: Sequence[str]) -> bool:

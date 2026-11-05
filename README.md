@@ -24,6 +24,7 @@ The current implementation takes a 3D matrix ($M$) and plane coordinates from a 
 The implementation and design are described in:
 * [Software Requirements Specification (SRS)](DOCS/SRS.md)
 * [System & Engineering Design (SDD/EDD)](DOCS/SDD_EDD.md)
+* [Testing Strategy & Cases (STP/STD)](DOCS/TSP_STD.md)
 
 The project files are organized as follows:
 * `SRC/` contains the command-line implementation.
@@ -31,6 +32,8 @@ The project files are organized as follows:
   * `data_loader.py` reads inputs; `plane.py` parses and prepares plane geometry.
   * `projector.py` samples the volume; `video_renderer.py` writes video frames.
 * `TEST/data/` contains sample volumes and plane-coordinate CSV files.
+* `TEST/` also contains the automated regression suite. Run it from the
+  repository root with `python -m unittest discover -s TEST -t . -v`.
 * `TEST/output/` contains example projection videos.
 * `DOCS/` contains the project documentation.
 

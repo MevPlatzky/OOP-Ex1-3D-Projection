@@ -31,8 +31,8 @@ in `.mp4` (case-insensitive), `.mp4` is appended.
 
 The program loads the volume with `nrrd.read`. The returned array is used
 directly as `volume[x, y, z]`; NRRD physical-space metadata is ignored. The
-implementation assumes a non-empty three-dimensional array and does not
-validate its dimensions or data type.
+loader requires a non-empty three-dimensional array with real integer or
+floating-point values and rejects non-finite voxel values.
 
 The global minimum and maximum are computed once from the entire loaded array
 and used later for frame normalization.
@@ -47,14 +47,14 @@ Each parseable row describes one plane:
 * If a row has exactly 10 or 13 numeric values, its first value is discarded
   as an identifier before parsing the coordinates.
 
-Whitespace and empty cells are ignored. Coordinate values are converted to
-`float32`. Non-numeric rows (including headers) and rows with unsupported
-coordinate counts are skipped. Rows that fail dimension calculation are also
-skipped without a row-specific diagnostic. If no planes remain, the program
-prints an error and exits with code `2`.
+Whitespace and empty cells are ignored. Coordinates must be finite and fit the
+`float32` range before conversion. Non-numeric rows (including headers) and
+rows with unsupported coordinate counts are skipped. Rows that fail dimension
+calculation are also skipped without a row-specific diagnostic. If no planes
+remain, the program prints an error and exits with code `2`.
 
-The loader does not validate that coordinates are finite or that the points
-form a coplanar, isosceles, non-degenerate triangle or trapezoid.
+The loader does not validate that the points form a coplanar, isosceles,
+non-degenerate triangle or trapezoid.
 
 ### 3.3 Plane dimensions and rasterization
 
@@ -117,13 +117,13 @@ threshold is currently enforced by the program.
 | Exit code | Implemented condition |
 |---|---|
 | `0` | The program completes video generation. |
-| `1` | The argument count is incorrect, or NRRD loading raises an exception. |
+| `1` | The argument count is incorrect, or NRRD loading/validation or CSV file reading fails. |
 | `2` | No plane rows remain after parsing and dimension calculation. |
 | `3` | All configured video-writer attempts fail. |
 
-CSV file-opening errors and unexpected errors during projection or encoding
-are not translated into these exit codes; they may propagate as Python
-exceptions. Invalid CSV rows are skipped rather than reported individually.
+Invalid CSV rows are skipped rather than reported individually. Unexpected
+errors during projection or encoding may still propagate as Python
+exceptions.
 
 ## 5. Non-functional behavior and limitations
 
@@ -132,5 +132,6 @@ exceptions. Invalid CSV rows are skipped rather than reported individually.
   rendered video in memory.
 * The code does not provide a GUI, geometric validation, alternate
   interpolation methods, or configurable FPS.
-* The repository currently has sample input/output data but no automated test
-  suite or dependency manifest.
+* The repository includes a standard-library `unittest` regression suite. It
+  requires NumPy, pynrrd, OpenCV, and Numba at runtime, but does not require
+  pytest. There is no dependency manifest.

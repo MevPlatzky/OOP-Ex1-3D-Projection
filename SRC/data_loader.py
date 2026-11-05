@@ -6,12 +6,28 @@ from typing import List
 import nrrd
 import numpy as np
 
-from plane import Plane, create_plane, parse_csv_row
+if __package__:
+    from .plane import Plane, create_plane, parse_csv_row
+else:
+    from plane import Plane, create_plane, parse_csv_row
 
 
 def load_volume(path: str) -> np.ndarray:
-    """Read the NRRD volume; its header is not used by the projection."""
+    """Read and validate a non-empty, finite, real-valued 3D NRRD volume."""
     volume, _ = nrrd.read(path)
+
+    if volume.ndim != 3 or any(size == 0 for size in volume.shape):
+        raise ValueError(
+            f"NRRD volume must be a non-empty 3D array; got shape {volume.shape}"
+        )
+    if not (
+        np.issubdtype(volume.dtype, np.integer)
+        or np.issubdtype(volume.dtype, np.floating)
+    ):
+        raise ValueError(f"NRRD volume must have a real numeric dtype; got {volume.dtype}")
+    if not np.isfinite(volume).all():
+        raise ValueError("NRRD volume contains non-finite values")
+
     return volume
 
 
@@ -28,6 +44,6 @@ def load_planes(path: str) -> List[Plane]:
                 continue
             try:
                 planes.append(create_plane(points))
-            except Exception:
+            except (FloatingPointError, OverflowError, TypeError, ValueError):
                 continue
     return planes
